@@ -2,18 +2,38 @@
 #include <netinet/in.h> /* sockaddr ... */
 #include <sys/socket.h> /* socket(), connect() */
 #include <arpa/inet.h> /* inet_pton() */
-#include <unistd.h> /* close() */
+#include <unistd.h> /* close(), getopt() */
 #include <string.h> /* memset() */
 #include <errno.h> /* ECONNREFUSED */
 #include "logger.h" /* FATALF() */
+enum {SYN_SCAN, CONNECT_SCAN} scan_mode = SYN_SCAN;
 
 int main(int argc, char *argv[]) {
-    // validate input args
-    if (argc <= 1)
-        FATALF("params should be", "<ip address>");
+    // parse input args
+    char *usage = "[-SC] <ip address>\n" \
+                  "-S default, scan with SYN packets\n" \
+                  "-C scan with connect(), i.e. the whole 3-way handshake procedure";
+    int opt;
+    while( (opt = getopt(argc, argv, "SCh")) != -1 ) {
+        switch(opt) {
+        case 'S': scan_mode = SYN_SCAN; break;
+        case 'C': scan_mode = CONNECT_SCAN; break;
+        case 'h': printf("Usage: %s\n", usage); return 0;
+        default:
+            FATALF("Usage", usage);
+        }
+    }
+    if (scan_mode == SYN_SCAN) {
+        printf("SYN scanner is in developing");
+        return 0;
+    }
+    extern int optind;
+    if (optind > argc)
+        FATALF("Usage", "missing ip address");
+    char *ipAddr = argv[optind];
+    printf("Scanning %s with %s\n", ipAddr, scan_mode == SYN_SCAN ? "SYN packets" : "TCP connection");
 
     // init destination address
-    char *ipAddr = argv[1];
     in_port_t portNum;
     portNum = 1;
     struct sockaddr_in destAddr;
