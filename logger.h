@@ -14,4 +14,4 @@ do { \
   fprintf(stderr, "%s: %s, errno: %d\n", title, strerror(errno), errno); \
   exit(EXIT_FAILURE); \
 } while(0)
-#endif
+#endif // __LOGGER_H
